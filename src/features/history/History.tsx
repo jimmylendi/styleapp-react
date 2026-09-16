@@ -131,7 +131,17 @@ export default function History() {
                             <div style={{ fontSize: 48, fontWeight: 900, color: 'var(--accent)', lineHeight: 1.2 }}>{usedOutfits.length}</div>
                         </div>
 
-                        <div className="ed-label">🔥 Prendas más usadas</div>
+                        {(() => {
+                            const totalVal = garments.reduce((acc, g) => acc + (g.price || 0), 0);
+                            return (
+                                <div style={{ background: 'var(--surface-2)', padding: '16px 20px', borderRadius: 'var(--r-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontSize: 13, color: 'var(--ink-2)', fontWeight: 600 }}>Valor de tu Clóset</div>
+                                    <div style={{ fontSize: 20, fontWeight: 800 }}>${totalVal}</div>
+                                </div>
+                            );
+                        })()}
+
+                        <div className="ed-label">🔥 Prendas Estrella (CPW)</div>
 
                         <div style={{ background: 'var(--surface-2)', padding: 16, borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: 12 }}>
                             {(() => {
@@ -153,6 +163,7 @@ export default function History() {
                                     const g = garments.find(g => g.id === id);
                                     if (!g) return null;
                                     const percentage = (count / maxCount) * 100;
+                                    const cpw = g.price ? (g.price / count).toFixed(2) : '--';
 
                                     return (
                                         <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -160,7 +171,10 @@ export default function History() {
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
                                                     <span>{g.name}</span>
-                                                    <span>{count} usos</span>
+                                                    <div style={{ textAlign: 'right' }}>
+                                                        <div>{count} usos</div>
+                                                        <div style={{ fontSize: 10, color: 'var(--ink-3)' }}>${cpw} / uso</div>
+                                                    </div>
                                                 </div>
                                                 <div style={{ height: 6, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden' }}>
                                                     <div style={{ height: '100%', width: `${percentage}%`, background: 'var(--accent)', borderRadius: 3, transition: 'width 1s var(--ease)' }} />

@@ -77,26 +77,26 @@ export const SKIN_PALETTES: Record<SkinTone, string[]> = {
 };
 
 export const CAPSULE_IDEAL: CapsuleItem[] = [
-  { id: 'c1', stage: 1, type: 'camiseta', name: 'Camiseta blanca', color: 'Blanco Roto', icon: '👕' },
-  { id: 'c2', stage: 1, type: 'camiseta', name: 'Camiseta crema', color: 'Crema', icon: '👕' },
-  { id: 'c3', stage: 1, type: 'polo', name: 'Polo azul marino', color: 'Azul Marino', icon: '👔' },
-  { id: 'c4', stage: 1, type: 'polo', name: 'Polo verde oliva', color: 'Verde Oliva', icon: '👔' },
-  { id: 'c5', stage: 1, type: 'pantalon', name: 'Chino camel', color: 'Camel', icon: '👖' },
-  { id: 'c6', stage: 1, type: 'pantalon', name: 'Chino beige', color: 'Beige Piedra', icon: '👖' },
-  { id: 'c7', stage: 1, type: 'pantalon', name: 'Jean índigo', color: 'Azul Marino', icon: '👖' },
-  { id: 'c8', stage: 1, type: 'tenis', name: 'Tenis crema', color: 'Crema', icon: '👟' },
-  { id: 'c9', stage: 2, type: 'camisa', name: 'Camisa blanca', color: 'Blanco Roto', icon: '👔' },
-  { id: 'c10', stage: 2, type: 'camisa', name: 'Camisa azul claro', color: 'Azul Marino', icon: '👔' },
-  { id: 'c11', stage: 2, type: 'pantalon', name: 'Pantalón gris', color: 'Gris Carbón', icon: '👖' },
-  { id: 'c12', stage: 2, type: 'blazer', name: 'Blazer marino', color: 'Azul Marino', icon: '🧥' },
-  { id: 'c13', stage: 2, type: 'mocasines', name: 'Mocasines coñac', color: 'Tabaco', icon: '👞' },
-  { id: 'c14', stage: 2, type: 'derby', name: 'Derby café', color: 'Chocolate', icon: '👞' },
-  { id: 'c15', stage: 3, type: 'polo', name: 'Polo terracota', color: 'Terracota', icon: '👔' },
-  { id: 'c16', stage: 3, type: 'sobrecamisa', name: 'Sobrecamisa oliva', color: 'Verde Oliva', icon: '🧥' },
-  { id: 'c17', stage: 3, type: 'sobrecamisa', name: 'Sobrecamisa chocolate', color: 'Chocolate', icon: '🧥' },
-  { id: 'c18', stage: 3, type: 'pantalon', name: 'Pantalón crema', color: 'Crema', icon: '👖' },
-  { id: 'c19', stage: 3, type: 'camisa', name: 'Camisa lino crema', color: 'Crema', icon: '👔' },
-  { id: 'c20', stage: 3, type: 'botines', name: 'Botines topo', color: 'Caqui', icon: '🥾' }
+  { id: 'c1', stage: 1, type: 'camiseta', name: 'Camiseta blanca', color: 'Blanco Roto', icon: '👕', price: 20 },
+  { id: 'c2', stage: 1, type: 'camiseta', name: 'Camiseta crema', color: 'Crema', icon: '👕', price: 20 },
+  { id: 'c3', stage: 1, type: 'polo', name: 'Polo azul marino', color: 'Azul Marino', icon: '👔', price: 35 },
+  { id: 'c4', stage: 1, type: 'polo', name: 'Polo verde oliva', color: 'Verde Oliva', icon: '👔', price: 35 },
+  { id: 'c5', stage: 1, type: 'pantalon', name: 'Chino camel', color: 'Camel', icon: '👖', price: 45 },
+  { id: 'c6', stage: 1, type: 'pantalon', name: 'Chino beige', color: 'Beige Piedra', icon: '👖', price: 45 },
+  { id: 'c7', stage: 1, type: 'pantalon', name: 'Jean índigo', color: 'Azul Marino', icon: '👖', price: 50 },
+  { id: 'c8', stage: 1, type: 'tenis', name: 'Tenis crema', color: 'Crema', icon: '👟', price: 70 },
+  { id: 'c9', stage: 2, type: 'camisa', name: 'Camisa blanca', color: 'Blanco Roto', icon: '👔', price: 60 },
+  { id: 'c10', stage: 2, type: 'camisa', name: 'Camisa azul claro', color: 'Azul Claro', icon: '👔', price: 60 },
+  { id: 'c11', stage: 2, type: 'pantalon', name: 'Pantalón gris', color: 'Gris Claro', icon: '👖', price: 55 },
+  { id: 'c12', stage: 2, type: 'blazer', name: 'Blazer marino', color: 'Azul Marino', icon: '🧥', price: 120 },
+  { id: 'c13', stage: 2, type: 'mocasines', name: 'Mocasines coñac', color: 'Tabaco', icon: '👞', price: 90 },
+  { id: 'c14', stage: 2, type: 'derby', name: 'Derby café', color: 'Chocolate', icon: '👞', price: 100 },
+  { id: 'c15', stage: 3, type: 'polo', name: 'Polo terracota', color: 'Terracota', icon: '👔', price: 35 },
+  { id: 'c16', stage: 3, type: 'sobrecamisa', name: 'Sobrecamisa oliva', color: 'Verde Oliva', icon: '🧥', price: 65 },
+  { id: 'c17', stage: 3, type: 'sobrecamisa', name: 'Sobrecamisa chocolate', color: 'Chocolate', icon: '🧥', price: 65 },
+  { id: 'c18', stage: 3, type: 'pantalon', name: 'Pantalón crema', color: 'Crema', icon: '👖', price: 45 },
+  { id: 'c19', stage: 3, type: 'camisa', name: 'Camisa lino crema', color: 'Crema', icon: '👔', price: 80 },
+  { id: 'c20', stage: 3, type: 'botines', name: 'Botines topo', color: 'Caqui', icon: '🥾', price: 110 }
 ];
 
 export const STAGE_INFO = {

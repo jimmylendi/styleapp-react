@@ -4,7 +4,7 @@
 
 import type {
   Garment, Outfit, OccasionId, UserProfile,
-  BiomechRules, PurchaseAnalysis, VerdictType, CapsuleItem
+  BiomechRules, PurchaseAnalysis, VerdictType, CapsuleItem, UsedOutfit
 } from '../types';
 import { OCCASIONS, SKIN_PALETTES, COLORS, TYPES } from './data';
 
@@ -24,13 +24,46 @@ export function generateOutfits(
   garments: Garment[],
   occasionId: OccasionId,
   profile: UserProfile,
-  count = 6
+  count = 6,
+  usedOutfits: UsedOutfit[] = []
 ): Outfit[] {
   const occ = OCCASIONS.find(o => o.id === occasionId);
   if (!occ) return [];
 
+  // 1. Cooldown filter (24 hours)
+  const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const recentUsedIds = new Set<string>();
+
+  usedOutfits.forEach(u => {
+    if (now - u.date < COOLDOWN_MS) {
+      u.key.split('-').forEach(id => recentUsedIds.add(id));
+    }
+  });
+
   const rules = getBiomechRules(profile);
-  const active = garments.filter(g => g.status !== 'want-replace');
+
+  // 2. Climate adjustments
+  let currentLayerLevel = occ.layerLevel;
+  if (profile.climate === 'calido') {
+    currentLayerLevel -= 1;
+  } else if (profile.climate === 'frio') {
+    currentLayerLevel = Math.max(1, currentLayerLevel);
+  }
+
+  // Active garments
+  let active = garments.filter(g => g.status !== 'want-replace');
+  const availableWithCooldown = active.filter(g => !recentUsedIds.has(g.id));
+
+  // Fallback: If applying cooldown leaves us without essential categories, ignore the cooldown
+  const hasEssentials =
+    availableWithCooldown.some(g => g.cat === 'top') &&
+    availableWithCooldown.some(g => g.cat === 'bottom') &&
+    availableWithCooldown.some(g => g.cat === 'shoes');
+
+  if (hasEssentials) {
+    active = availableWithCooldown;
+  }
 
   const tops = active.filter(g => g.cat === 'top');
   const bottoms = active.filter(g => g.cat === 'bottom');
@@ -66,7 +99,7 @@ export function generateOutfits(
     if (!top || !bottom || !shoe) continue;
 
     let layer: Garment | null = null;
-    if (occ.layerLevel > 0 && layers.length && occ.layerLevel <= rules.maxLayers) {
+    if (currentLayerLevel > 0 && layers.length && currentLayerLevel <= rules.maxLayers) {
       if (Math.random() > 0.35) layer = layers[Math.floor(Math.random() * layers.length)];
     }
 

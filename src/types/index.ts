@@ -41,6 +41,7 @@ export interface CapsuleItem {
   name: string;
   color: string;
   icon: string;
+  price?: number;
 }
 
 export interface Garment {
@@ -53,6 +54,8 @@ export interface Garment {
   name: string;
   status: 'ok' | 'want-replace';
   addedAt: number;
+  price?: number;
+  imageUrl?: string;
 }
 
 export type HeightUnit = 'metric' | 'imperial';

@@ -24,6 +24,10 @@ export default function PurchaseSheet({ onClose }: { onClose: () => void }) {
     // Analysis result
     const [analysis, setAnalysis] = useState<PurchaseAnalysis | null>(null);
 
+    // Advanced Info (V2)
+    const [price, setPrice] = useState<number>(0);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+
     // 9 Questions Checklist
     const [checks, setChecks] = useState<boolean[]>(Array(9).fill(false));
 
@@ -68,10 +72,24 @@ export default function PurchaseSheet({ onClose }: { onClose: () => void }) {
             colorHex: meta.hex,
             colorCat: meta.cat,
             name,
-            status: 'ok'
+            status: 'ok',
+            price: price > 0 ? price : undefined,
+            imageUrl: imageUrl || undefined
         });
 
         onClose();
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (typeof e.target?.result === 'string') {
+                setImageUrl(e.target.result);
+            }
+        };
+        reader.readAsDataURL(file);
     };
 
     const toggleCheck = (idx: number) => {
@@ -195,6 +213,34 @@ export default function PurchaseSheet({ onClose }: { onClose: () => void }) {
                                     ))}
                                 </ul>
                             </div>
+
+                            {analysis.verdict !== 'red' && (
+                                <div style={{ marginBottom: 24 }}>
+                                    <div className="field__label" style={{ marginBottom: 8 }}>Datos Reales (Opcional)</div>
+                                    <div style={{ display: 'flex', gap: 12 }}>
+                                        <div style={{ flex: 1 }}>
+                                            <input
+                                                type="number"
+                                                placeholder="Precio ($)"
+                                                value={price === 0 ? '' : price}
+                                                onChange={(e) => setPrice(Number(e.target.value))}
+                                                style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', border: '1px solid var(--line)', background: 'var(--surface)' }}
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1, position: 'relative' }}>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleFileChange}
+                                                style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
+                                            />
+                                            <div style={{ width: '100%', padding: '12px 14px', borderRadius: 'var(--r-md)', background: 'var(--surface-3)', color: 'var(--ink)', textAlign: 'center', fontWeight: 'bold' }}>
+                                                {imageUrl ? '📸 Lista' : '📸 Foto'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {analysis.verdict !== 'red' && (
                                 <div className="checklist">

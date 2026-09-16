@@ -16,18 +16,20 @@ export default function Outfits() {
   const skin = useStore((s) => s.skin);
   const climate = useStore((s) => s.climate);
   const name = useStore((s) => s.name);
+  const usedOutfits = useStore((s) => s.usedOutfits);
 
   const [seed, setSeed] = useState(0);
   const [usedKeys, setUsedKeys] = useState<Set<string>>(new Set());
 
   const gLen = garments.length;
+  const uLen = usedOutfits.length;
 
   const outfits = useMemo(() => {
     if (gLen === 0) return [];
     const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate };
-    return generateOutfits(garments, occasion, profile, 6);
+    return generateOutfits(garments, occasion, profile, 6, usedOutfits);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed]);
+  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen]);
 
   const occMeta = OCCASIONS.find((o) => o.id === occasion);
 

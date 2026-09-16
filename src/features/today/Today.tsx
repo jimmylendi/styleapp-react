@@ -16,6 +16,7 @@ export default function Today() {
   const build = useStore((s) => s.build);
   const skin = useStore((s) => s.skin);
   const climate = useStore((s) => s.climate);
+  const usedOutfits = useStore((s) => s.usedOutfits);
 
   /* ── Local state ── */
   const [seed, setSeed] = useState(0);
@@ -23,6 +24,7 @@ export default function Today() {
 
   /* ── Stable garment count (primitive) for dep tracking ── */
   const gLen = garments.length;
+  const uLen = usedOutfits.length;
 
   /*
    * ★ KEY FIX: all deps are PRIMITIVES (string | number).
@@ -34,9 +36,9 @@ export default function Today() {
   const outfits: Outfit[] = useMemo(() => {
     if (gLen === 0) return [];
     const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate };
-    return generateOutfits(garments, occasion, profile, 3);
+    return generateOutfits(garments, occasion, profile, 3, usedOutfits);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed]);
+  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen]);
 
   const hero = outfits[0] ?? null;
   const occMeta = OCCASIONS.find((o) => o.id === occasion);
