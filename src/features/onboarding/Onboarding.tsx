@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../../lib/store';
 import { BUILDS, SKINS, CLIMATES, HEIGHT_METRIC, HEIGHT_IMPERIAL } from '../../lib/data';
+import { assignPalette } from '../../lib/palettes';
 import type { BodyBuild, SkinTone, Climate, HeightUnit } from '../../types';
 
 const STEPS = [1, 2, 3, 4, 5];
@@ -32,11 +33,13 @@ export default function Onboarding() {
     completeOnboarding();
   };
 
-  // Reset altura al cambiar de unidad
   const changeUnit = (unit: HeightUnit) => {
     setHeightUnit(unit);
     setHeight(unit === 'metric' ? '195' : '196');
   };
+
+  // Paleta asignada según las selecciones actuales
+  const assignment = assignPalette(skin, 'neutro', build);
 
   return (
     <div className="ob">
@@ -201,36 +204,60 @@ export default function Onboarding() {
         {step === 5 && (
           <section className="ob__step">
             <div className="ob__label">Paso 04 / 04</div>
-            <h2 className="ob__title">Tu perfil<br />está listo.</h2>
-            <p className="ob__sub">Con esto ya puedo armar tus mejores combinaciones.</p>
+            <h2 className="ob__title">Tu paleta<br />está lista.</h2>
+            <p className="ob__sub">
+              Basada en tu tono de piel, complexión y clima.
+            </p>
 
-            <div className="summary">
-              <div className="summary__row">
-                <span className="summary__k">Nombre</span>
-                <span className="summary__v">{name || 'amigo'}</span>
+            {/* Paleta principal */}
+            <div className="palette-reveal">
+              <div className="palette-reveal__label">
+                Paleta #{assignment.main.num}
               </div>
-              <div className="summary__row">
-                <span className="summary__k">Altura</span>
-                <span className="summary__v">
-                  {heightUnit === 'metric'
-                    ? `${(parseInt(height) / 100).toFixed(2)} m`
-                    : `${Math.floor(parseInt(height) / 2.54 / 12)}'${Math.round((parseInt(height) / 2.54) % 12)}"`
-                  }
-                </span>
+              <div className="palette-reveal__name">
+                {assignment.main.name}
               </div>
-              <div className="summary__row">
-                <span className="summary__k">Constitución</span>
-                <span className="summary__v">{BUILDS[build].name}</span>
+              <div className="palette-reveal__style">
+                {assignment.main.style}
               </div>
-              <div className="summary__row">
-                <span className="summary__k">Tono de piel</span>
-                <span className="summary__v">{SKINS[skin].name}</span>
+
+              <div className="palette-reveal__colors">
+                {assignment.main.colors.map((c, i) => (
+                  <span
+                    key={i}
+                    className="palette-reveal__swatch"
+                    style={{ background: c }}
+                  />
+                ))}
               </div>
-              <div className="summary__row">
-                <span className="summary__k">Clima</span>
-                <span className="summary__v">{CLIMATES[climate]}</span>
+
+              <div className="palette-reveal__combo">
+                {assignment.main.combination}
               </div>
             </div>
+
+            {/* Paleta estrella si aplica */}
+        {/* Paleta estrella si aplica */}
+          {assignment.star && (
+            <div className="palette-reveal palette-reveal--star">
+              <div className="palette-reveal__badge">★ Estrella</div>
+              <div className="palette-reveal__name">
+                {assignment.star.name}
+              </div>
+              <div className="palette-reveal__colors">
+                {assignment.star.colors.map((c: string, i: number) => (
+                  <span
+                    key={i}
+                    className="palette-reveal__swatch"
+                    style={{ background: c }}
+                  />
+                ))}
+              </div>
+              <div className="palette-reveal__combo">
+                {assignment.star.description}
+              </div>
+            </div>
+          )}
 
             <div className="ob__actions ob__actions--single">
               <button className="btn btn-primary btn-xl" onClick={finish}>
