@@ -76,10 +76,14 @@ export interface Outfit {
   key: string;
 }
 
+export type FeedbackRating = 'like' | 'neutral' | 'dislike';
+
 export interface UsedOutfit {
+  id: string;
   key: string;
   date: number;
   occasion: OccasionId;
+  rating?: FeedbackRating;
 }
 
 export interface BiomechRules {

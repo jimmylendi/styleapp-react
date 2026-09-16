@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   UserProfile, Garment, UsedOutfit, OccasionId,
-  BodyBuild, SkinTone, Climate, HeightUnit
+  BodyBuild, SkinTone, Climate, HeightUnit, FeedbackRating
 } from '../types';
 interface StyleState {
   // Onboarding
@@ -33,6 +33,7 @@ interface StyleState {
 
   setOccasion: (o: OccasionId) => void;
   useOutfit: (key: string) => void;
+  rateOutfit: (id: string, rating: FeedbackRating) => void;
 
   toggleTheme: () => void;
   reset: () => void;
@@ -82,7 +83,16 @@ export const useStore = create<StyleState>()(
       setOccasion: (o) => set({ occasion: o }),
 
       useOutfit: (key) => set((s) => ({
-        usedOutfits: [...s.usedOutfits, { key, date: Date.now(), occasion: s.occasion }]
+        usedOutfits: [...s.usedOutfits, {
+          id: 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+          key,
+          date: Date.now(),
+          occasion: s.occasion
+        }]
+      })),
+
+      rateOutfit: (id, rating) => set((s) => ({
+        usedOutfits: s.usedOutfits.map(u => u.id === id ? { ...u, rating } : u)
       })),
 
       toggleTheme: () => set((s) => {

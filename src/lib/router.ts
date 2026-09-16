@@ -2,7 +2,7 @@
    ROUTER · Definición de rutas
    ============================================================ */
 
-export type RouteId = 'today' | 'outfits' | 'closet' | 'profile';
+export type RouteId = 'today' | 'outfits' | 'closet' | 'history' | 'profile';
 
 export interface RouteDef {
   id: RouteId;
@@ -12,8 +12,9 @@ export interface RouteDef {
 }
 
 export const ROUTES: RouteDef[] = [
-  { id: 'today',   label: 'Hoy',     icon: '◐', title: 'Hoy' },
+  { id: 'today', label: 'Hoy', icon: '◐', title: 'Hoy' },
   { id: 'outfits', label: 'Outfits', icon: '◇', title: 'Outfits' },
-  { id: 'closet',  label: 'Clóset',  icon: '◫', title: 'Clóset' },
-  { id: 'profile', label: 'Yo',      icon: '◉', title: 'Yo' }
+  { id: 'closet', label: 'Clóset', icon: '◫', title: 'Clóset' },
+  { id: 'history', label: 'Historial', icon: '🗓️', title: 'Historial' },
+  { id: 'profile', label: 'Yo', icon: '◉', title: 'Yo' }
 ];

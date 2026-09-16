@@ -5,6 +5,7 @@ import Onboarding from './features/onboarding/Onboarding';
 import Today from './features/today/Today';
 import Outfits from './features/outfits/Outfits';
 import Closet from './features/closet/Closet';
+import History from './features/history/History';
 import Profile from './features/profile/Profile';
 
 export default function App() {
@@ -58,6 +59,7 @@ export default function App() {
         {route === 'today' && <Today />}
         {route === 'outfits' && <Outfits />}
         {route === 'closet' && <Closet />}
+        {route === 'history' && <History />}
         {route === 'profile' && <Profile />}
       </main>
 
