@@ -65,7 +65,10 @@ body {
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink);
-  background: var(--bg);
+  background: radial-gradient(circle at 0% 10%, rgba(255, 90, 38, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 100% 90%, rgba(56, 134, 255, 0.1) 0%, transparent 40%),
+    var(--bg);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
@@ -166,19 +169,21 @@ input {
 /* ===== FLOATING TABBAR ===== */
 .tabbar {
   position: fixed;
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  left: 16px;
-  right: 16px;
-  height: 64px;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 420px;
+  height: 72px;
   z-index: 50;
   display: flex;
-  background: rgba(14, 18, 30, 0.75);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(14, 18, 30, 0.45);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--r-full);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 6px;
+  border-radius: var(--r-xl);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.2);
+  padding: 8px;
 }
 
 [data-theme="light"] .tabbar {
@@ -199,8 +204,8 @@ input {
 }
 
 .tab.is-active {
-  color: var(--accent);
-  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+  background: rgba(255, 90, 38, 0.15);
 }
 
 [data-theme="light"] .tab.is-active {
