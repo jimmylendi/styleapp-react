@@ -3,6 +3,7 @@ import { useStore } from '../../lib/store';
 import { generateOutfits } from '../../lib/engine';
 import { OCCASIONS } from '../../lib/data';
 import type { OccasionId, Outfit } from '../../types';
+import Oracle from './Oracle';
 
 export default function Today() {
   /* ── Store (all primitive selectors for referential stability) ── */
@@ -187,6 +188,9 @@ export default function Today() {
           </div>
         </div>
       )}
+
+      {/* ── AI Oracle Section ── */}
+      <Oracle />
     </div>
   );
 }
