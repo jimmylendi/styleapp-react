@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useStore } from '../../lib/store';
 import { generateOutfits } from '../../lib/engine';
 import { OCCASIONS } from '../../lib/data';
 import type { OccasionId, Outfit } from '../../types';
 import Oracle from './Oracle';
+import { fetchLiveWeather, type LiveWeather } from '../../lib/weather';
 
 export default function Today() {
   /* ── Store (all primitive selectors for referential stability) ── */
@@ -22,6 +23,11 @@ export default function Today() {
   /* ── Local state ── */
   const [seed, setSeed] = useState(0);
   const [used, setUsed] = useState(false);
+  const [liveWeather, setLiveWeather] = useState<LiveWeather | null>(null);
+
+  useEffect(() => {
+    fetchLiveWeather().then(setLiveWeather).catch(() => { });
+  }, []);
 
   /* ── Stable garment count (primitive) for dep tracking ── */
   const gLen = garments.length;
@@ -36,10 +42,13 @@ export default function Today() {
    */
   const outfits: Outfit[] = useMemo(() => {
     if (gLen === 0) return [];
-    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate };
+
+    const activeClimate = liveWeather ? liveWeather.climate : climate;
+    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate: activeClimate };
+
     return generateOutfits(garments, occasion, profile, 3, usedOutfits);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen]);
+  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen, liveWeather]);
 
   const hero = outfits[0] ?? null;
   const occMeta = OCCASIONS.find((o) => o.id === occasion);
@@ -67,8 +76,13 @@ export default function Today() {
 
   return (
     <div>
-      <div className="ed-label" style={{ marginBottom: 12 }}>
-        {greeting}
+      <div className="ed-label" style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between' }}>
+        <span>{greeting}</span>
+        {liveWeather && (
+          <span style={{ color: 'var(--accent)' }}>
+            {liveWeather.isDay ? '☀️' : '🌙'} {liveWeather.tempC}°C ({liveWeather.climate === 'calido' ? 'Clima cálido' : 'Clima frío'})
+          </span>
+        )}
       </div>
       <h1 className="ed-title">{name || 'Tu outfit'}</h1>
 
