@@ -5,6 +5,7 @@ import { OCCASIONS } from '../../lib/data';
 import type { OccasionId, Outfit } from '../../types';
 import Oracle from './Oracle';
 import { fetchLiveWeather, type LiveWeather } from '../../lib/weather';
+import { compressImage } from '../../lib/image';
 
 export default function Today() {
   /* ── Store (all primitive selectors for referential stability) ── */
@@ -53,10 +54,22 @@ export default function Today() {
   const hero = outfits[0] ?? null;
   const occMeta = OCCASIONS.find((o) => o.id === occasion);
 
-  const handleUse = () => {
+  const handleUse = (imageUrl?: string) => {
     if (!hero) return;
-    markUsed(hero.key);
+    markUsed(hero.key, imageUrl);
     setUsed(true);
+  };
+
+  const handlePhotoCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const base64 = await compressImage(file, 400);
+      handleUse(base64);
+    } catch (err) {
+      console.error(err);
+      alert("Hubo un error al guardar la foto.");
+    }
   };
 
   const handleRegen = () => {
@@ -156,17 +169,27 @@ export default function Today() {
                 : 'Combinación correcta'}
           </div>
 
-          <div className="outfit-hero__actions">
-            <button
-              className="btn btn-primary"
-              onClick={handleUse}
-              disabled={used}
-            >
-              {used ? '✓ Usado hoy' : 'Usar hoy'}
-            </button>
-            <button className="btn btn-secondary" onClick={handleRegen}>
-              ↻ Regenerar
-            </button>
+          <div className="outfit-hero__actions" style={{ flexDirection: 'column', gap: 12 }}>
+            {!used ? (
+              <>
+                <label className="btn btn-primary" style={{ width: '100%', position: 'relative', overflow: 'hidden' }}>
+                  📸 Selfie de mi Outfit (Guardar)
+                  <input type="file" accept="image/*" capture="user" style={{ position: 'absolute', opacity: 0, inset: 0, cursor: 'pointer' }} onChange={handlePhotoCapture} />
+                </label>
+                <div style={{ display: 'flex', gap: 8, width: '100%' }}>
+                  <button className="btn btn-secondary" onClick={() => handleUse()} style={{ flex: 1, fontSize: 13 }}>
+                    Solo confirmar (Sin foto)
+                  </button>
+                  <button className="btn btn-secondary" onClick={handleRegen} style={{ width: 56 }}>
+                    ↻
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: 16, borderRadius: 'var(--r-md)', background: 'rgba(26, 224, 95, 0.1)', color: 'var(--success)', fontWeight: 800, textAlign: 'center' }}>
+                ¡Outfit Registrado en el Historial!
+              </div>
+            )}
           </div>
         </div>
       )}

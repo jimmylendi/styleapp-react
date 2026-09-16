@@ -3,6 +3,7 @@ import { useStore } from '../../lib/store';
 import { COLORS, TYPES } from '../../lib/data';
 import { getCapsuleProgress, getNextPurchase, matchCapsule, CAPSULE_IDEAL } from '../../lib/capsule';
 import PurchaseSheet from '../purchase/PurchaseSheet';
+import PurgeMode from './PurgeMode';
 import type { GarmentCat } from '../../types';
 
 type ClosetTab = 'ideal' | 'mine';
@@ -14,6 +15,7 @@ export default function Closet() {
   const [tab, setTab] = useState<ClosetTab>('ideal');
   const [showAdd, setShowAdd] = useState(false);
   const [showPurchase, setShowPurchase] = useState(false);
+  const [showPurge, setShowPurge] = useState(false);
   const [prefill, setPrefill] = useState<{ type?: string; color?: string } | null>(null);
 
   const progress = useMemo(() => getCapsuleProgress(garments), [garments]);
@@ -72,8 +74,24 @@ export default function Closet() {
             flex: 'none'
           }}
         >
-          🛒 Modo Compra
+          🛒 Compra
         </button>
+
+        {/* MODO PURGA BUTTON */}
+        {garments.length > 3 && (
+          <button
+            className="closet-tab"
+            onClick={() => setShowPurge(true)}
+            style={{
+              background: 'rgba(255, 59, 48, 0.15)',
+              color: 'var(--danger)',
+              marginLeft: 8,
+              flex: 'none'
+            }}
+          >
+            🧹 Limpiar
+          </button>
+        )}
       </div>
 
       {/* ════════════════════════════════════════════════
@@ -267,6 +285,10 @@ export default function Closet() {
 
       {showPurchase && (
         <PurchaseSheet onClose={() => setShowPurchase(false)} />
+      )}
+
+      {showPurge && (
+        <PurgeMode onClose={() => setShowPurge(false)} />
       )}
     </div>
   );

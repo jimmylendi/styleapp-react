@@ -32,7 +32,7 @@ interface StyleState {
   removeGarment: (id: string) => void;
 
   setOccasion: (o: OccasionId) => void;
-  useOutfit: (key: string) => void;
+  useOutfit: (key: string, imageUrl?: string) => void;
   rateOutfit: (id: string, rating: FeedbackRating) => void;
 
   toggleTheme: () => void;
@@ -82,12 +82,13 @@ export const useStore = create<StyleState>()(
 
       setOccasion: (o) => set({ occasion: o }),
 
-      useOutfit: (key) => set((s) => ({
+      useOutfit: (key, imageUrl) => set((s) => ({
         usedOutfits: [...s.usedOutfits, {
           id: 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
           key,
           date: Date.now(),
-          occasion: s.occasion
+          occasion: s.occasion,
+          ...(imageUrl && { imageUrl })
         }]
       })),
 

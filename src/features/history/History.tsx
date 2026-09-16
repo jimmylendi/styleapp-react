@@ -103,6 +103,12 @@ export default function History() {
                                             </div>
                                         </div>
 
+                                        {u.imageUrl && (
+                                            <div style={{ marginTop: 16, marginBottom: 8, overflow: 'hidden', borderRadius: 'var(--r-md)' }}>
+                                                <img src={u.imageUrl} alt="Selfie del día" style={{ width: '100%', maxHeight: 360, objectFit: 'cover', display: 'block' }} />
+                                            </div>
+                                        )}
+
                                         {renderOutfitSummary(u.key)}
 
                                         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

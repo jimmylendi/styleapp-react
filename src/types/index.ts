@@ -87,6 +87,7 @@ export interface UsedOutfit {
   date: number;
   occasion: OccasionId;
   rating?: FeedbackRating;
+  imageUrl?: string;
 }
 
 export interface BiomechRules {

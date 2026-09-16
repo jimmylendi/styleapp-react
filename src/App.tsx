@@ -7,6 +7,7 @@ import Outfits from './features/outfits/Outfits';
 import Closet from './features/closet/Closet';
 import History from './features/history/History';
 import Profile from './features/profile/Profile';
+import Travel from './features/travel/Travel';
 
 export default function App() {
   const onboarded = useStore((s) => s.onboarded);
@@ -57,6 +58,7 @@ export default function App() {
 
       <main className="main">
         {route === 'today' && <Today />}
+        {route === 'travel' && <Travel />}
         {route === 'outfits' && <Outfits />}
         {route === 'closet' && <Closet />}
         {route === 'history' && <History />}

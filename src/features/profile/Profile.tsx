@@ -42,7 +42,16 @@ export default function Profile() {
       });
     }
   });
+
   const neverUsed = garments.filter((g) => !usedIds.has(g.id)).length;
+
+  const achievements = [
+    { id: 'first', icon: '🏆', title: 'Primer Paso', desc: 'Registraste tu primer outfit.', unlocked: usedOutfits.length >= 1 },
+    { id: 'streak', icon: '🔥', title: 'Racha Constante', desc: 'Registraste al menos 5 outfits históricos.', unlocked: usedOutfits.length >= 5 },
+    { id: 'collector', icon: '💎', title: 'Coleccionista', desc: 'Llegaste a más de 10 prendas en el Clóset.', unlocked: garments.length >= 10 },
+    { id: 'critic', icon: '💅', title: 'Crítico de Moda', desc: 'Calificaste 3 outfits o más.', unlocked: usedOutfits.filter(u => u.rating).length >= 3 },
+    { id: 'minimalist', icon: '🧘', title: 'Minimalista', desc: 'Usaste menos de 10 prendas únicas en múltiples días.', unlocked: usedIds.size <= 10 && usedOutfits.length >= 5 }
+  ];
 
   const handleReset = () => {
     if (confirm('¿Borrar todo y empezar de nuevo?')) reset();
@@ -158,7 +167,31 @@ export default function Profile() {
         )}
       </div>
 
+      <div className="section" style={{ marginTop: 40 }}>
+        <h3 className="section-title">Logros Desbloqueados</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 12 }}>
+          {achievements.map(a => (
+            <div key={a.id} style={{
+              background: a.unlocked ? 'var(--surface-3)' : 'var(--surface-2)',
+              opacity: a.unlocked ? 1 : 0.4,
+              padding: 16,
+              borderRadius: 'var(--r-md)',
+              textAlign: 'center',
+              border: a.unlocked ? '1px solid var(--accent)' : '1px solid transparent',
+              boxShadow: a.unlocked ? '0 0 16px rgba(var(--accent-rgb), 0.1)' : 'none'
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 8, filter: a.unlocked ? 'none' : 'grayscale(1)' }}>{a.icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: a.unlocked ? 'var(--ink)' : 'var(--ink-2)' }}>{a.title}</div>
+              <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4 }}>{a.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
+        <h3 className="section-title" style={{ color: 'var(--danger)', marginBottom: 12 }}>
+          Zona de Peligro
+        </h3>
         <button className="btn btn-secondary" onClick={handleReset} style={{ width: '100%' }}>
           Reiniciar app
         </button>
