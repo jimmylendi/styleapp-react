@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStore } from '../../lib/store';
 import { OCCASIONS } from '../../lib/data';
 import type { FeedbackRating, Garment } from '../../types';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export default function History() {
     const [tab, setTab] = useState<'timeline' | 'stats'>('timeline');
@@ -157,32 +158,40 @@ export default function History() {
                                 });
 
                                 const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-                                const maxCount = sortedCounts[0]?.[1] || 1;
 
-                                return sortedCounts.map(([id, count]) => {
+                                const chartData = sortedCounts.map(([id, count]) => {
                                     const g = garments.find(g => g.id === id);
-                                    if (!g) return null;
-                                    const percentage = (count / maxCount) * 100;
-                                    const cpw = g.price ? (g.price / count).toFixed(2) : '--';
+                                    return {
+                                        name: g?.name || 'Prenda',
+                                        cpw: g?.price ? parseFloat((g.price / count).toFixed(2)) : 0,
+                                        usos: count,
+                                        colorHex: g?.colorHex || '#586175'
+                                    };
+                                }).filter(d => d.cpw > 0);
 
-                                    return (
-                                        <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                                            <div style={{ width: 32, height: 32, borderRadius: 8, background: g.colorHex, flexShrink: 0 }} />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-                                                    <span>{g.name}</span>
-                                                    <div style={{ textAlign: 'right' }}>
-                                                        <div>{count} usos</div>
-                                                        <div style={{ fontSize: 10, color: 'var(--ink-3)' }}>${cpw} / uso</div>
-                                                    </div>
-                                                </div>
-                                                <div style={{ height: 6, background: 'var(--surface-3)', borderRadius: 3, overflow: 'hidden' }}>
-                                                    <div style={{ height: '100%', width: `${percentage}%`, background: 'var(--accent)', borderRadius: 3, transition: 'width 1s var(--ease)' }} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                });
+                                if (chartData.length === 0) return <div style={{ fontSize: 13, color: 'var(--ink-2)', textAlign: 'center', padding: '20px 0' }}>Agrega precios a tus prendas (Modo Compra) para calcular el CPW real.</div>;
+
+                                return (
+                                    <div style={{ height: 280, width: '100%', marginTop: 8 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 30, left: -20, bottom: 0 }}>
+                                                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--ink-3)' }} tickFormatter={(val) => `$${val}`} />
+                                                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={140} tick={{ fontSize: 11, fill: 'var(--ink)', fontWeight: 600 }} />
+                                                <Tooltip
+                                                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                                                    contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-md)', color: 'var(--ink)' }}
+                                                    itemStyle={{ color: 'var(--ink)' }}
+                                                    formatter={(value: any) => [`$${value}`, 'Costo por Uso (CPW)']}
+                                                />
+                                                <Bar dataKey="cpw" radius={[0, 6, 6, 0]} barSize={24}>
+                                                    {chartData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.colorHex} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                );
                             })()}
                         </div>
                     </div>
