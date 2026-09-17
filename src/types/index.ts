@@ -9,6 +9,15 @@ export type SkinTone = 'clara' | 'media' | 'morena' | 'oscura' | 'muy-oscura';
 export type Climate = 'frio' | 'templado' | 'calido';
 export type OccasionId = 'oficina' | 'casual' | 'templo' | 'noche' | 'elegante';
 export type VerdictType = 'green' | 'yellow' | 'red';
+export type StylePersonality = 'clasico' | 'casual' | 'urbano' | 'artistico' | 'minimalista' | 'elegante';
+
+export interface Badge {
+  id: string;
+  icon: string;
+  title: string;
+  desc: string;
+  unlocked: boolean;
+}
 
 export interface ColorMeta {
   cat: ColorCategory;
@@ -58,6 +67,21 @@ export interface Garment {
   imageUrl?: string;
 }
 
+export interface PackingItem {
+  garmentId: string;
+  packed: boolean;
+}
+
+export interface PackingList {
+  days: number;
+  climate: Climate;
+  tops: PackingItem[];
+  bottoms: PackingItem[];
+  shoes: PackingItem[];
+  layers: PackingItem[];
+  totalCombinations: number;
+}
+
 export type HeightUnit = 'metric' | 'imperial';
 
 export interface UserProfile {
@@ -68,6 +92,7 @@ export interface UserProfile {
   build: BodyBuild;
   skin: SkinTone;
   climate: Climate;
+  stylePersonality: StylePersonality;
 }
 
 export interface Outfit {

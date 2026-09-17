@@ -19,19 +19,19 @@ export default function History() {
         const parts = ids.map(id => garments.find(g => g.id === id)).filter(Boolean) as Garment[];
 
         return (
-            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
                 {parts.map(p => (
-                    <div
-                        key={p.id}
-                        style={{
-                            width: 36, height: 36, borderRadius: '50%',
-                            background: p.colorHex, border: '2px solid rgba(255,255,255,0.1)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: 16
-                        }}
-                        title={p.name}
-                    >
-                        {/* Fallback to simple first letter if no icon, or we could look up the generic icon by type */}
+                    <div key={p.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <div
+                            style={{
+                                width: 36, height: 36, borderRadius: '50%',
+                                background: p.colorHex, border: '2px solid rgba(255,255,255,0.1)'
+                            }}
+                            title={p.name}
+                        />
+                        <span style={{ fontSize: 10, color: 'var(--ink-2)', maxWidth: 60, textAlign: 'center', lineHeight: 1.2 }}>
+                            {p.name.split(' ')[0]} {/* Show just the first word e.g. "Camisa" */}
+                        </span>
                     </div>
                 ))}
             </div>

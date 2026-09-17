@@ -1,12 +1,17 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { Garment } from '../types';
 
-export const askOracle = async (prompt: string, garments: Garment[]) => {
-    const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!API_KEY) throw new Error('No se encontró la llave de Gemini AI (VITE_GEMINI_API_KEY).');
+export const askOracle = async (prompt: string, garments: Garment[], runtimeKey?: string) => {
+    const API_KEY = runtimeKey || import.meta.env.VITE_GEMINI_API_KEY;
+    if (!API_KEY) {
+        throw new Error(
+            'No has configurado tu API Key de Gemini. ' +
+            'Ve a Perfil → sección "Oráculo IA" → pega tu clave de https://aistudio.google.com/app/apikey'
+        );
+    }
 
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     const minimalGarments = garments.map(g => ({
         id: g.id,
@@ -38,13 +43,22 @@ export const askOracle = async (prompt: string, garments: Garment[]) => {
         const response = result.response;
         const textResponse = response.text();
 
-        // Sanitize raw text to force JSON format in case the AI wraps it in markdown despite instructions
-        const cleanJSON = textResponse.replace(/^```json/g, '').replace(/```$/g, '').trim();
+        // Sanitize raw text to force JSON format in case AI wraps it despite instructions
+        const cleanJSON = textResponse
+            .replace(/^```json\s*/g, '')
+            .replace(/^```\s*/g, '')
+            .replace(/```\s*$/g, '')
+            .trim();
 
         const outfitRaw = JSON.parse(cleanJSON);
         return outfitRaw;
-    } catch (e) {
-        console.error("AI Error:", e);
-        throw new Error('La inteligencia artificial no pudo procesar tu solicitud. Intenta con un texto más claro.');
+    } catch (e: any) {
+        console.error('AI Error:', e);
+        if (e?.message?.includes('API_KEY') || e?.message?.includes('401') || e?.status === 400) {
+            throw new Error(
+                'La API Key es inválida. Genera una nueva en https://aistudio.google.com/app/apikey y pégala en Perfil → Oráculo IA.'
+            );
+        }
+        throw new Error('El Oráculo no pudo responder. Intenta con un texto más claro o revisa tu API Key.');
     }
 };

@@ -4,6 +4,7 @@ import { generateOutfits } from '../../lib/engine';
 import { OCCASIONS } from '../../lib/data';
 import type { OccasionId, Outfit } from '../../types';
 import Oracle from './Oracle';
+import ShareCard from './ShareCard';
 import { fetchLiveWeather, type LiveWeather } from '../../lib/weather';
 import { compressImage } from '../../lib/image';
 
@@ -20,10 +21,12 @@ export default function Today() {
   const skin = useStore((s) => s.skin);
   const climate = useStore((s) => s.climate);
   const usedOutfits = useStore((s) => s.usedOutfits);
+  const stylePersonality = useStore((s) => s.stylePersonality);
 
   /* ── Local state ── */
   const [seed, setSeed] = useState(0);
   const [used, setUsed] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [liveWeather, setLiveWeather] = useState<LiveWeather | null>(null);
 
   useEffect(() => {
@@ -45,11 +48,11 @@ export default function Today() {
     if (gLen === 0) return [];
 
     const activeClimate = liveWeather ? liveWeather.climate : climate;
-    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate: activeClimate };
+    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate: activeClimate, stylePersonality };
 
     return generateOutfits(garments, occasion, profile, 3, usedOutfits);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen, liveWeather]);
+  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen, liveWeather, stylePersonality]);
 
   const hero = outfits[0] ?? null;
   const occMeta = OCCASIONS.find((o) => o.id === occasion);
@@ -93,7 +96,10 @@ export default function Today() {
         <span>{greeting}</span>
         {liveWeather && (
           <span style={{ color: 'var(--accent)' }}>
-            {liveWeather.isDay ? '☀️' : '🌙'} {liveWeather.tempC}°C ({liveWeather.climate === 'calido' ? 'Clima cálido' : 'Clima frío'})
+            {liveWeather.isDay ? '☀️' : '🌙'} {liveWeather.tempC}°C (
+            {liveWeather.climate === 'calido' ? 'Cálido' :
+              liveWeather.climate === 'frio' ? 'Frío' : 'Templado'}
+            )
           </span>
         )}
       </div>
@@ -186,8 +192,17 @@ export default function Today() {
                 </div>
               </>
             ) : (
-              <div style={{ padding: 16, borderRadius: 'var(--r-md)', background: 'rgba(26, 224, 95, 0.1)', color: 'var(--success)', fontWeight: 800, textAlign: 'center' }}>
-                ¡Outfit Registrado en el Historial!
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+                <div style={{ padding: 16, borderRadius: 'var(--r-md)', background: 'rgba(26, 224, 95, 0.1)', color: 'var(--success)', fontWeight: 800, textAlign: 'center' }}>
+                  ¡Outfit Registrado en el Historial!
+                </div>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowShare(true)}
+                  style={{ width: '100%', fontSize: 13 }}
+                >
+                  📤 Compartir este outfit
+                </button>
               </div>
             )}
           </div>
@@ -228,6 +243,15 @@ export default function Today() {
 
       {/* ── AI Oracle Section ── */}
       <Oracle />
+
+      {showShare && hero && (
+        <ShareCard
+          outfitPieces={[hero.top, hero.layer, hero.bottom, hero.shoe]}
+          occasion={occMeta?.name ?? occasion}
+          name={name}
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,50 +1,47 @@
-import type { Garment } from '../types';
+import type { Garment, Climate, PackingList } from '../types';
 
-
-interface PackingMap {
-    tops: Garment[];
-    bottoms: Garment[];
-    shoes: Garment[];
-    layers: Garment[];
-    totalCombinations: number;
-}
-
-export const generatePackingList = (garments: Garment[], days: number, climate: 'calido' | 'frio'): PackingMap => {
-    // Use the mathematical model for a Capsule Wardrobe (Golden Ratio Packing)
+export const generatePackingList = (garments: Garment[], days: number, climate: Climate): PackingList => {
     // 5-4-3-2-1 rule adapted for N days.
     const tCount = Math.max(3, Math.ceil(days * 0.7)); // Tops
     const bCount = Math.max(2, Math.ceil(days * 0.4)); // Bottoms
     const sCount = Math.max(1, Math.min(3, Math.ceil(days * 0.2))); // Shoes
-    const lCount = climate === 'frio' ? Math.max(1, Math.ceil(days * 0.3)) : 0; // Layers
+    let lCount = 0;
+    if (climate === 'frio') lCount = Math.max(2, Math.ceil(days * 0.4));
+    if (climate === 'templado') lCount = Math.max(1, Math.ceil(days * 0.2));
 
-    // Shuffle array function for dynamic lists
-    const shuffle = (array: Garment[]) => [...array].sort(() => 0.5 - Math.random());
-
-    // Filter garments based on climate logic (if cold, mostly heavy. if warm, mostly light)
-    // Here we'll use a simplified check against the database
-    const smartFilter = (cat: string) => {
-        return shuffle(garments.filter(g => {
-            if (g.cat !== cat) return false;
-
-            // Si es clima frío, omitimos prendas que sepamos que son para la playa, pero como no tenemos peso,
-            // dejaremos las validaciones base. Se puede refinar con la IA.
-            return true;
-        }));
+    // Prioritization scoring for highly combinable items
+    const scoreGarment = (g: Garment) => {
+        let score = 0;
+        if (g.colorCat === 'base') score += 10;
+        else if (g.colorCat === 'secondary') score += 5;
+        // Penailze duplicate types/colors slightly, but for now just prioritize bases
+        return score + Math.random(); // Add slight variance so it's not identical every time
     };
 
-    const tops = smartFilter('top').slice(0, tCount);
-    const bottoms = smartFilter('bottom').slice(0, bCount);
-    const shoes = smartFilter('shoes').slice(0, sCount);
-    const layers = smartFilter('layer').slice(0, lCount);
+    const sortByScore = (list: Garment[]) => [...list].sort((a, b) => scoreGarment(b) - scoreGarment(a));
+
+    const allTops = garments.filter(g => g.cat === 'top');
+    const allBottoms = garments.filter(g => g.cat === 'bottom');
+    const allShoes = garments.filter(g => g.cat === 'shoes');
+    const allLayers = garments.filter(g => g.cat === 'layer');
+
+    const selectedTops = sortByScore(allTops).slice(0, tCount);
+    const selectedBottoms = sortByScore(allBottoms).slice(0, bCount);
+    const selectedShoes = sortByScore(allShoes).slice(0, sCount);
+    const selectedLayers = sortByScore(allLayers).slice(0, lCount);
 
     // Calculate absolute total possible configurations
-    const totalCombinations = tops.length * bottoms.length * shoes.length * (layers.length > 0 ? (layers.length + 1) : 1);
+    const totalCombinations = selectedTops.length * selectedBottoms.length * selectedShoes.length * (selectedLayers.length > 0 ? (selectedLayers.length + 1) : 1);
+
+    const toPackingItem = (g: Garment[]) => g.map(garment => ({ garmentId: garment.id, packed: false }));
 
     return {
-        tops,
-        bottoms,
-        shoes,
-        layers,
+        days,
+        climate,
+        tops: toPackingItem(selectedTops),
+        bottoms: toPackingItem(selectedBottoms),
+        shoes: toPackingItem(selectedShoes),
+        layers: toPackingItem(selectedLayers),
         totalCombinations
     };
 };

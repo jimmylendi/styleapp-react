@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useStore } from '../../lib/store';
 import { COLORS, TYPES } from '../../lib/data';
-import { getCapsuleProgress, getNextPurchase, matchCapsule, CAPSULE_IDEAL } from '../../lib/capsule';
+import { getCapsuleProgress, getNextPurchase, matchCapsule, getDynamicCapsule } from '../../lib/capsule';
+import { assignPalette } from '../../lib/palettes';
 import PurchaseSheet from '../purchase/PurchaseSheet';
 import PurgeMode from './PurgeMode';
 import type { GarmentCat } from '../../types';
@@ -12,15 +13,24 @@ export default function Closet() {
   const garments = useStore((s) => s.garments);
   const removeGarment = useStore((s) => s.removeGarment);
 
+  const build = useStore((s) => s.build);
+  const skin = useStore((s) => s.skin);
+  const stylePersonality = useStore((s) => s.stylePersonality);
+
   const [tab, setTab] = useState<ClosetTab>('ideal');
   const [showAdd, setShowAdd] = useState(false);
   const [showPurchase, setShowPurchase] = useState(false);
   const [showPurge, setShowPurge] = useState(false);
   const [prefill, setPrefill] = useState<{ type?: string; color?: string } | null>(null);
 
-  const progress = useMemo(() => getCapsuleProgress(garments), [garments]);
-  const nextBuy = useMemo(() => getNextPurchase(garments), [garments]);
-  const matches = useMemo(() => matchCapsule(garments, CAPSULE_IDEAL), [garments]);
+  const dynamicCapsule = useMemo(() => {
+    const assignment = assignPalette(skin, 'neutro', build, stylePersonality);
+    return getDynamicCapsule(assignment);
+  }, [skin, build, stylePersonality]);
+
+  const progress = useMemo(() => getCapsuleProgress(garments, dynamicCapsule), [garments, dynamicCapsule]);
+  const nextBuy = useMemo(() => getNextPurchase(garments, dynamicCapsule), [garments, dynamicCapsule]);
+  const matches = useMemo(() => matchCapsule(garments, dynamicCapsule), [garments, dynamicCapsule]);
 
   const cats: Record<GarmentCat, string> = {
     top: 'Superiores', bottom: 'Pantalones', layer: 'Capas', shoes: 'Calzado'

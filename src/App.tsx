@@ -8,6 +8,7 @@ import Closet from './features/closet/Closet';
 import History from './features/history/History';
 import Profile from './features/profile/Profile';
 import Travel from './features/travel/Travel';
+import StyleDNA from './features/style-dna/StyleDNA';
 
 export default function App() {
   const onboarded = useStore((s) => s.onboarded);
@@ -45,7 +46,7 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="sidebar__foot">v16 · 2026</div>
+        <div className="sidebar__foot">v18 · 2026</div>
       </aside>
 
       <header className="topbar">
@@ -58,6 +59,7 @@ export default function App() {
 
       <main className="main">
         {route === 'today' && <Today />}
+        {route === 'style-dna' && <StyleDNA />}
         {route === 'travel' && <Travel />}
         {route === 'outfits' && <Outfits />}
         {route === 'closet' && <Closet />}

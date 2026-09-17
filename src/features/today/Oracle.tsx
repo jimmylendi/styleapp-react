@@ -4,10 +4,13 @@ import { askOracle } from '../../lib/ai';
 
 export default function Oracle() {
     const garments = useStore(s => s.garments);
+    const geminiApiKey = useStore(s => s.geminiApiKey);
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [outfit, setOutfit] = useState<any>(null); // The raw IDs returned by AI
+    const [outfit, setOutfit] = useState<any>(null);
+
+    const hasKey = !!(geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY);
 
     const handleAsk = async () => {
         if (!prompt.trim() || garments.length === 0) return;
@@ -15,20 +18,19 @@ export default function Oracle() {
         setError(null);
         setOutfit(null);
         try {
-            const result = await askOracle(prompt, garments);
+            const result = await askOracle(prompt, garments, geminiApiKey || undefined);
             setOutfit(result);
         } catch (e: any) {
-            setError(e.message || "Error al contactar al Oráculo.");
+            setError(e.message || 'Error al contactar al Oráculo.');
         } finally {
             setLoading(false);
         }
     };
 
     const renderPiece = (id: string) => {
-        if (!id) return;
+        if (!id) return null;
         const g = garments.find(g => g.id === id);
-        if (!g) return;
-
+        if (!g) return null;
         return (
             <div key={g.id} className="outfit-hero__piece" style={{ fontSize: 16 }}>
                 <div className="outfit-hero__dot" style={{ background: g.colorHex, width: 24, height: 24, borderRadius: 6 }} />
@@ -44,32 +46,57 @@ export default function Oracle() {
                 <h3 style={{ fontSize: 16, fontWeight: 900 }}>El Oráculo</h3>
             </div>
 
-            <p style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 16 }}>
-                Describe a dónde vas o cómo te sientes. La Inteligencia Artificial armará el outfit perfecto usando tu clóset.
-            </p>
+            {!hasKey ? (
+                <div style={{
+                    background: 'rgba(255, 200, 0, 0.08)',
+                    border: '1px solid rgba(255, 200, 0, 0.25)',
+                    borderRadius: 'var(--r-md)',
+                    padding: '14px 16px',
+                    fontSize: 13,
+                    color: 'var(--warn)',
+                    lineHeight: 1.6
+                }}>
+                    ⚠️ <strong>API Key no configurada.</strong><br />
+                    Ve a <strong>Perfil → Oráculo IA</strong> y pega tu clave de{' '}
+                    <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer"
+                        style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                        Google AI Studio
+                    </a>.
+                </div>
+            ) : (
+                <>
+                    <p style={{ fontSize: 13, color: 'var(--ink-2)', marginBottom: 16 }}>
+                        Describe a dónde vas o cómo te sientes. La IA armará el outfit perfecto con tu clóset.
+                    </p>
 
-            <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                    type="text"
-                    className="input"
-                    placeholder="Ej. Cita casual de noche en invierno..."
-                    value={prompt}
-                    onChange={e => setPrompt(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAsk()}
-                    disabled={loading}
-                    style={{ flex: 1, padding: '12px 16px', borderRadius: 'var(--r-full)' }}
-                />
-                <button
-                    className="btn btn-primary"
-                    onClick={handleAsk}
-                    disabled={loading}
-                    style={{ padding: '0 24px', borderRadius: 'var(--r-full)' }}
-                >
-                    {loading ? '...' : 'Preguntar'}
-                </button>
-            </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <input
+                            type="text"
+                            className="input"
+                            placeholder="Ej. Cita casual de noche en invierno..."
+                            value={prompt}
+                            onChange={e => setPrompt(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleAsk()}
+                            disabled={loading}
+                            style={{ flex: 1, padding: '12px 16px', borderRadius: 'var(--r-full)' }}
+                        />
+                        <button
+                            className="btn btn-primary"
+                            onClick={handleAsk}
+                            disabled={loading || !prompt.trim()}
+                            style={{ padding: '0 24px', borderRadius: 'var(--r-full)' }}
+                        >
+                            {loading ? '...' : 'Preguntar'}
+                        </button>
+                    </div>
+                </>
+            )}
 
-            {error && <div style={{ marginTop: 16, color: 'var(--danger)', fontSize: 13, fontWeight: 600 }}>{error}</div>}
+            {error && (
+                <div style={{ marginTop: 16, background: 'rgba(255,59,48,0.08)', border: '1px solid rgba(255,59,48,0.2)', borderRadius: 'var(--r-md)', padding: '12px 16px', color: 'var(--danger)', fontSize: 13, fontWeight: 600, lineHeight: 1.6 }}>
+                    {error}
+                </div>
+            )}
 
             {outfit && (
                 <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--line)' }}>

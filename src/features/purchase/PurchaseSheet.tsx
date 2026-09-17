@@ -11,11 +11,12 @@ export default function PurchaseSheet({ onClose }: { onClose: () => void }) {
     const build = useStore((s) => s.build);
     const skin = useStore((s) => s.skin);
     const climate = useStore((s) => s.climate);
+    const stylePersonality = useStore((s) => s.stylePersonality);
 
     const garments = useStore((s) => s.garments);
     const addGarment = useStore((s) => s.addGarment);
 
-    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate };
+    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate, stylePersonality };
 
     const [type, setType] = useState<string | null>(null);
     const [subtype, setSubtype] = useState<string | null>(null);

@@ -17,6 +17,7 @@ export default function Outfits() {
   const climate = useStore((s) => s.climate);
   const name = useStore((s) => s.name);
   const usedOutfits = useStore((s) => s.usedOutfits);
+  const stylePersonality = useStore((s) => s.stylePersonality);
 
   const [seed, setSeed] = useState(0);
   const [usedKeys, setUsedKeys] = useState<Set<string>>(new Set());
@@ -26,10 +27,10 @@ export default function Outfits() {
 
   const outfits = useMemo(() => {
     if (gLen === 0) return [];
-    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate };
+    const profile = { onboarded: true, name, height, heightUnit: hUnit, build, skin, climate, stylePersonality };
     return generateOutfits(garments, occasion, profile, 6, usedOutfits);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen]);
+  }, [gLen, occasion, name, height, hUnit, build, skin, climate, seed, uLen, stylePersonality]);
 
   const occMeta = OCCASIONS.find((o) => o.id === occasion);
 

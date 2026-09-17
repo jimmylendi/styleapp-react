@@ -7,6 +7,7 @@ import type {
   BiomechRules, PurchaseAnalysis, VerdictType, CapsuleItem, UsedOutfit
 } from '../types';
 import { OCCASIONS, SKIN_PALETTES, COLORS, TYPES } from './data';
+import { PERSONALITIES } from './personality';
 
 /* ===== Reglas biomecánicas según perfil ===== */
 export function getBiomechRules(profile: UserProfile): BiomechRules {
@@ -121,6 +122,13 @@ export function generateOutfits(
     if (all.filter(x => x.colorCat === 'base').length >= 2) score += 2;
     if (rules.palette.includes(top.colorName)) score += 2;
     if (rules.palette.includes(bottom.colorName)) score += 2;
+
+    // Personality bonus
+    if (profile.stylePersonality) {
+      const prefTypes = PERSONALITIES[profile.stylePersonality]?.prefersTypes ?? [];
+      if (prefTypes.includes(top.type)) score += 2;
+      if (prefTypes.includes(shoe.type)) score += 1;
+    }
 
     outfits.push({ top, bottom, shoe, layer, score, key });
   }

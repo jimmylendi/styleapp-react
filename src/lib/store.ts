@@ -6,7 +6,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   UserProfile, Garment, UsedOutfit, OccasionId,
-  BodyBuild, SkinTone, Climate, HeightUnit, FeedbackRating
+  BodyBuild, SkinTone, Climate, HeightUnit, FeedbackRating, Badge, StylePersonality,
+  PackingList
 } from '../types';
 interface StyleState {
   // Onboarding
@@ -17,12 +18,15 @@ interface StyleState {
   build: BodyBuild;
   skin: SkinTone;
   climate: Climate;
+  stylePersonality: StylePersonality;
 
   // App
   theme: 'auto' | 'dark' | 'light';
   occasion: OccasionId;
   garments: Garment[];
   usedOutfits: UsedOutfit[];
+  badges: Badge[];
+  geminiApiKey: string;
 
   // Actions
   setProfile: (p: Partial<UserProfile>) => void;
@@ -34,12 +38,20 @@ interface StyleState {
   setOccasion: (o: OccasionId) => void;
   useOutfit: (key: string, imageUrl?: string) => void;
   rateOutfit: (id: string, rating: FeedbackRating) => void;
+  deleteGarment: (id: string) => void;
 
+  setGeminiApiKey: (key: string) => void;
   toggleTheme: () => void;
   reset: () => void;
 
   // Helpers
   getProfile: () => UserProfile;
+
+  // Trip
+  activeTrip: PackingList | null;
+  startTrip: (list: PackingList) => void;
+  togglePackedItem: (garmentId: string, category: keyof Omit<PackingList, 'days' | 'climate' | 'totalCombinations'>) => void;
+  endTrip: () => void;
 }
 
 const initial = {
@@ -53,7 +65,11 @@ const initial = {
   theme: 'dark' as const,
   occasion: 'oficina' as OccasionId,
   garments: [] as Garment[],
-  usedOutfits: [] as UsedOutfit[]
+  usedOutfits: [] as UsedOutfit[],
+  badges: [] as Badge[],
+  geminiApiKey: '',
+  stylePersonality: 'casual' as StylePersonality,
+  activeTrip: null as PackingList | null
 };
 
 export const useStore = create<StyleState>()(
@@ -80,6 +96,11 @@ export const useStore = create<StyleState>()(
         garments: s.garments.filter(g => g.id !== id)
       })),
 
+      deleteGarment: (id) => set((s) => ({
+        garments: s.garments.filter(g => g.id !== id),
+        usedOutfits: s.usedOutfits.filter(u => !u.key.split('-').includes(id))
+      })),
+
       setOccasion: (o) => set({ occasion: o }),
 
       useOutfit: (key, imageUrl) => set((s) => ({
@@ -95,6 +116,8 @@ export const useStore = create<StyleState>()(
       rateOutfit: (id, rating) => set((s) => ({
         usedOutfits: s.usedOutfits.map(u => u.id === id ? { ...u, rating } : u)
       })),
+
+      setGeminiApiKey: (key) => set({ geminiApiKey: key }),
 
       toggleTheme: () => set((s) => {
         const order: Array<'auto' | 'dark' | 'light'> = ['auto', 'dark', 'light'];
@@ -113,12 +136,24 @@ export const useStore = create<StyleState>()(
           heightUnit: s.heightUnit,
           build: s.build,
           skin: s.skin,
-          climate: s.climate
+          climate: s.climate,
+          stylePersonality: s.stylePersonality
         };
-      }
+      },
+
+      // --- Trip ---
+      startTrip: (list) => set({ activeTrip: list }),
+      endTrip: () => set({ activeTrip: null }),
+      togglePackedItem: (garmentId, category) => set((s) => {
+        if (!s.activeTrip) return s;
+        const items = s.activeTrip[category].map(i =>
+          i.garmentId === garmentId ? { ...i, packed: !i.packed } : i
+        );
+        return { activeTrip: { ...s.activeTrip, [category]: items } };
+      })
     }),
     {
-      name: 'styleapp_v16',
+      name: 'styleapp_v19',
       storage: createJSONStorage(() => localStorage)
     }
   )
