@@ -298,7 +298,11 @@ export default function Closet() {
       )}
 
       {showPurge && (
-        <PurgeMode onClose={() => setShowPurge(false)} />
+        <PurgeMode
+          garments={garments}
+          onClose={() => setShowPurge(false)}
+          onPurge={removeGarment}
+        />
       )}
     </div>
   );

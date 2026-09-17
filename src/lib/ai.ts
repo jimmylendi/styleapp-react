@@ -1,7 +1,12 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { Garment } from '../types';
 
-export const askOracle = async (prompt: string, garments: Garment[], runtimeKey?: string) => {
+export const askOracle = async (
+    prompt: string,
+    garments: Garment[],
+    userProfile: { skin: string, build: string, stylePersonality: string },
+    runtimeKey?: string
+) => {
     const API_KEY = runtimeKey || import.meta.env.VITE_GEMINI_API_KEY;
     if (!API_KEY) {
         throw new Error(
@@ -21,8 +26,8 @@ export const askOracle = async (prompt: string, garments: Garment[], runtimeKey?
     }));
 
     const systemInstruction = `
-    Eres un oráculo estilista personal experto de élite respondiendo a una app móvil.
-    El usuario te dirá cómo se siente, a dónde va o el clima, y tú debes armar un Outfit (cápsula temporal) usando ÚNICAMENTE las prendas disponibles en su clóset.
+    Eres un oráculo estilista personal experto. Tu usuario es de complexión "${userProfile.build}", tono de piel "${userProfile.skin}", y tiene una personalidad de estilo "${userProfile.stylePersonality}".
+    El usuario te dirá cómo se siente, a dónde va o el clima, y tú debes armar un Outfit (cápsula temporal) usando ÚNICAMENTE las prendas disponibles en su clóset JSON.
     
     CLÓSET DISPONIBLE (JSON):
     ${JSON.stringify(minimalGarments)}
@@ -30,12 +35,19 @@ export const askOracle = async (prompt: string, garments: Garment[], runtimeKey?
     INSTRUCCIÓN DEL USUARIO:
     "${prompt}"
     
-    REGLAS:
-    - Solo usa IDs del clóset disponible.
-    - RESPUESTA OBLIGATORIA: Debes devolver ÚNICAMENTE un objeto JSON puro (sin formato markdown ni \`\`\`json) con las 4 llaves exactas ("top", "bottom", "shoe", "layer").
-    - "layer" puede ser un string vacío "" si el clima es caluroso o el usuario no necesita chamarra.
-    Ejemplo exacto de tu respuesta:
-    {"top":"id_21", "bottom":"id_31", "shoe":"id_83", "layer":""}
+    REGLAS ESTRICTAS DE RESPUESTA:
+    DEBES devolver UN ÚNICO OBJETO JSON puro (sin formato markdown ni \`\`\`json) con esta estructura exacta:
+    {
+      "reasoning": "Un mensaje corto (2-3 oraciones) saludando al usuario, explicando por qué elegiste estas prendas basándote en su perfil de estilo (${userProfile.stylePersonality}) y tono de piel.",
+      "outfit": {
+        "top": "id_21",
+        "bottom": "id_31",
+        "shoe": "id_83",
+        "layer": ""
+      }
+    }
+    
+    - Solo usa IDs del clóset disponible. Si "layer" no aplica, mándalo como "".
     `;
 
     try {
@@ -50,8 +62,8 @@ export const askOracle = async (prompt: string, garments: Garment[], runtimeKey?
             .replace(/```\s*$/g, '')
             .trim();
 
-        const outfitRaw = JSON.parse(cleanJSON);
-        return outfitRaw;
+        const data = JSON.parse(cleanJSON);
+        return data; // { reasoning: string, outfit: { top, bottom, layer, shoe } }
     } catch (e: any) {
         console.error('AI Error:', e);
         if (e?.message?.includes('API_KEY') || e?.message?.includes('401') || e?.status === 400) {
@@ -59,6 +71,6 @@ export const askOracle = async (prompt: string, garments: Garment[], runtimeKey?
                 'La API Key es inválida. Genera una nueva en https://aistudio.google.com/app/apikey y pégala en Perfil → Oráculo IA.'
             );
         }
-        throw new Error('El Oráculo no pudo responder. Intenta con un texto más claro o revisa tu API Key.');
+        throw new Error('El Oráculo no pudo procesar la respuesta. Intenta con un texto más claro o revisa tu API Key.');
     }
 };

@@ -246,9 +246,7 @@ export default function Today() {
 
       {showShare && hero && (
         <ShareCard
-          outfitPieces={[hero.top, hero.layer, hero.bottom, hero.shoe]}
-          occasion={occMeta?.name ?? occasion}
-          name={name}
+          outfit={{ top: hero.top?.id, bottom: hero.bottom?.id, layer: hero.layer?.id, shoe: hero.shoe?.id }}
           onClose={() => setShowShare(false)}
         />
       )}

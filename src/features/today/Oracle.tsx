@@ -5,10 +5,14 @@ import { askOracle } from '../../lib/ai';
 export default function Oracle() {
     const garments = useStore(s => s.garments);
     const geminiApiKey = useStore(s => s.geminiApiKey);
+    const build = useStore(s => s.build);
+    const skin = useStore(s => s.skin);
+    const stylePersonality = useStore(s => s.stylePersonality);
+
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [outfit, setOutfit] = useState<any>(null);
+    const [outfitData, setOutfitData] = useState<{ reasoning: string, outfit: any } | null>(null);
 
     const hasKey = !!(geminiApiKey || import.meta.env.VITE_GEMINI_API_KEY);
 
@@ -16,10 +20,11 @@ export default function Oracle() {
         if (!prompt.trim() || garments.length === 0) return;
         setLoading(true);
         setError(null);
-        setOutfit(null);
+        setOutfitData(null);
         try {
-            const result = await askOracle(prompt, garments, geminiApiKey || undefined);
-            setOutfit(result);
+            const profileCtx = { skin, build, stylePersonality };
+            const result = await askOracle(prompt, garments, profileCtx, geminiApiKey || undefined);
+            setOutfitData(result);
         } catch (e: any) {
             setError(e.message || 'Error al contactar al Oráculo.');
         } finally {
@@ -98,14 +103,17 @@ export default function Oracle() {
                 </div>
             )}
 
-            {outfit && (
+            {outfitData && (
                 <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--line)' }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>Sugerencia Divina</div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12 }}>El Oráculo ha hablado</div>
+                    <p style={{ fontSize: 14, color: 'var(--ink-1)', marginBottom: 20, lineHeight: 1.6, fontStyle: 'italic' }}>
+                        "{outfitData.reasoning}"
+                    </p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {renderPiece(outfit.top)}
-                        {renderPiece(outfit.layer)}
-                        {renderPiece(outfit.bottom)}
-                        {renderPiece(outfit.shoe)}
+                        {renderPiece(outfitData.outfit.top)}
+                        {renderPiece(outfitData.outfit.layer)}
+                        {renderPiece(outfitData.outfit.bottom)}
+                        {renderPiece(outfitData.outfit.shoe)}
                     </div>
                 </div>
             )}

@@ -1,176 +1,116 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import * as htmlToImage from 'html-to-image';
+import { useStore } from '../../lib/store';
 import type { Garment } from '../../types';
 
 interface ShareCardProps {
-    outfitPieces: (Garment | null)[];
-    occasion: string;
-    name: string;
+    outfit: { top?: string; bottom?: string; layer?: string; shoe?: string };
     onClose: () => void;
 }
 
-export default function ShareCard({ outfitPieces, occasion, name, onClose }: ShareCardProps) {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const pieces = outfitPieces.filter(Boolean) as Garment[];
+export default function ShareCard({ outfit, onClose }: ShareCardProps) {
+    const garments = useStore(s => s.garments);
+    const stylePersonality = useStore(s => s.stylePersonality);
+    const name = useStore(s => s.name);
 
-    const handleDownload = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+    const [generating, setGenerating] = useState(false);
+    const cardRef = useRef<HTMLDivElement>(null);
 
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+    const getGarment = (id?: string) => garments.find(g => g.id === id);
 
-        const W = 400, H = 560;
-        canvas.width = W;
-        canvas.height = H;
+    const cTop = getGarment(outfit.top);
+    const cBottom = getGarment(outfit.bottom);
+    const cLayer = getGarment(outfit.layer);
+    const cShoe = getGarment(outfit.shoe);
 
-        // Background gradient
-        const grad = ctx.createLinearGradient(0, 0, 0, H);
-        grad.addColorStop(0, '#0A0E1A');
-        grad.addColorStop(1, '#12182E');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
-
-        // Top accent bar
-        ctx.fillStyle = '#6C63FF';
-        ctx.fillRect(0, 0, W, 4);
-
-        // "StyleApp" brand
-        ctx.fillStyle = 'rgba(108,99,255,0.9)';
-        ctx.font = 'bold 13px system-ui, sans-serif';
-        ctx.fillText('✨ StyleApp', 28, 36);
-
-        // Occasion label
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.font = '12px system-ui, sans-serif';
-        ctx.fillText(occasion.toUpperCase(), 28, 58);
-
-        // Name / title
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 26px system-ui, sans-serif';
-        ctx.fillText(name ? `Outfit de ${name}` : 'Mi Outfit del Día', 28, 100);
-
-        // Divider
-        ctx.fillStyle = 'rgba(255,255,255,0.08)';
-        ctx.fillRect(28, 118, W - 56, 1);
-
-        // Color swatches + garment names
-        let y = 148;
-        pieces.forEach((piece, i) => {
-            // Swatch circle
-            ctx.beginPath();
-            ctx.arc(52, y, 18, 0, Math.PI * 2);
-            ctx.fillStyle = piece.colorHex;
-            ctx.fill();
-
-            // Index badge
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
-            ctx.font = '10px system-ui';
-            ctx.fillText(String(i + 1), 48, y + 4);
-
-            // Name
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 15px system-ui, sans-serif';
-            ctx.fillText(piece.name, 82, y - 4);
-
-            // Type
-            ctx.fillStyle = 'rgba(255,255,255,0.45)';
-            ctx.font = '12px system-ui, sans-serif';
-            ctx.fillText(piece.type + ' · ' + piece.colorName, 82, y + 14);
-
-            y += 64;
-        });
-
-        // Bottom date
-        const dateStr = new Date().toLocaleDateString('es', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-        ctx.fillStyle = 'rgba(255,255,255,0.22)';
-        ctx.font = '11px system-ui, sans-serif';
-        ctx.fillText(dateStr, 28, H - 28);
-
-        // Download
-        const link = document.createElement('a');
-        link.download = `outfit-${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    };
-
-    const handleShare = async () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const getBlob = (): Promise<Blob | null> =>
-            new Promise(res => canvas.toBlob(res, 'image/png'));
-
+    const handleDownload = async () => {
+        if (!cardRef.current) return;
+        setGenerating(true);
         try {
-            const blob = await getBlob();
-            if (!blob) return;
-            const file = new File([blob], 'outfit.png', { type: 'image/png' });
-            if (navigator.canShare?.({ files: [file] })) {
-                await navigator.share({ files: [file], title: 'Mi outfit del día — StyleApp' });
-            } else {
-                handleDownload();
-            }
-        } catch (_) {
-            handleDownload();
+            const dataUrl = await htmlToImage.toJpeg(cardRef.current, { quality: 0.95 });
+            const link = document.createElement('a');
+            link.download = `styleapp-outfit-${Date.now()}.jpg`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error('Error generando imagen', error);
+            alert('No se pudo generar la imagen. Intenta de nuevo.');
+        } finally {
+            setGenerating(false);
         }
     };
 
+    const renderSwatch = (g: Garment | undefined) => {
+        if (!g) return null;
+        return (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                    width: 50, height: 50, borderRadius: '50%', background: g.colorHex,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '2px solid rgba(255,255,255,0.1)'
+                }} />
+                <span style={{ fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.1, color: 'var(--ink-2)' }}>
+                    {g.name}
+                </span>
+            </div>
+        );
+    };
+
     return (
-        <div
-            className="sheet-overlay"
-            onClick={onClose}
-            style={{ alignItems: 'center', justifyContent: 'center' }}
-        >
+        <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.9)', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', padding: 24, backdropFilter: 'blur(10px)'
+        }}>
+            {/* Contenedor que se tomará foto */}
             <div
-                className="sheet"
-                onClick={e => e.stopPropagation()}
-                style={{ maxWidth: 440, borderRadius: 'var(--r-xl)', overflow: 'hidden' }}
+                ref={cardRef}
+                style={{
+                    background: 'linear-gradient(145deg, #1A1A1A 0%, #111 100%)',
+                    width: 320, borderRadius: 24, padding: 32,
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center'
+                }}
             >
-                <div className="sheet__head">
-                    <div>
-                        <div className="sheet__eyebrow">📤 Compartir</div>
-                        <h2 className="sheet__title">Tu outfit del día</h2>
-                    </div>
-                    <button className="sheet__close" onClick={onClose}>✕</button>
+                {/* Cabecera marca */}
+                <div style={{ fontSize: 13, fontWeight: 900, letterSpacing: 2, color: 'var(--accent)', marginBottom: 24 }}>
+                    STYLEAPP
                 </div>
 
-                {/* Visual card preview */}
-                <div style={{ margin: '0 20px 20px', background: 'linear-gradient(160deg,#0A0E1A, #12182E)', borderRadius: 'var(--r-lg)', padding: 24, border: '1px solid rgba(108,99,255,0.2)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 800, letterSpacing: 1 }}>✨ STYLEAPP</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>{occasion}</div>
-                    <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 20 }}>{name ? `Outfit de ${name}` : 'Mi Outfit del Día'}</div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        {pieces.map((p, i) => (
-                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                                <div style={{ width: 40, height: 40, borderRadius: '50%', background: p.colorHex, flexShrink: 0, border: '2px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'rgba(0,0,0,0.5)', fontWeight: 700 }}>
-                                    {i + 1}
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: 14, fontWeight: 700 }}>{p.name}</div>
-                                    <div style={{ fontSize: 11, color: 'var(--ink-3)' }}>{p.type} · {p.colorName}</div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div style={{ marginTop: 20, fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>
-                        {new Date().toLocaleDateString('es', { weekday: 'long', month: 'short', day: 'numeric' })}
-                    </div>
+                <div style={{ fontSize: 24, fontWeight: 800, textAlign: 'center', lineHeight: 1.2, marginBottom: 8 }}>
+                    Outfit del Día
                 </div>
 
-                {/* Hidden canvas for export */}
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
-
-                <div className="sheet__foot" style={{ display: 'flex', gap: 10 }}>
-                    <button className="btn btn-secondary" onClick={handleDownload} style={{ flex: 1 }}>
-                        ⬇️ Descargar PNG
-                    </button>
-                    <button className="btn btn-primary" onClick={handleShare} style={{ flex: 1 }}>
-                        📤 Compartir
-                    </button>
+                <div style={{ fontSize: 13, color: 'var(--ink-2)', textAlign: 'center', marginBottom: 32 }}>
+                    Diseñado para el arquetipo <br />
+                    <strong style={{ color: '#fff', textTransform: 'capitalize' }}>{stylePersonality}</strong>
                 </div>
+
+                {/* Grid prendas circular */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 32, width: '100%' }}>
+                    {renderSwatch(cTop)}
+                    {renderSwatch(cLayer)}
+                    {renderSwatch(cBottom)}
+                    {renderSwatch(cShoe)}
+                </div>
+
+                {/* Firma usuario */}
+                <div style={{
+                    width: '100%', borderTop: '1px solid rgba(255,255,255,0.1)',
+                    paddingTop: 16, display: 'flex', justifyContent: 'space-between',
+                    alignItems: 'center', fontSize: 11, color: 'var(--ink-2)'
+                }}>
+                    <span>{new Date().toLocaleDateString('es-ES', { month: 'short', day: 'numeric' })}</span>
+                    <span>Moda Dinámica by <strong>{name || 'Usuario'}</strong></span>
+                </div>
+            </div>
+
+            {/* Controles FUERA del canvas */}
+            <div style={{ display: 'flex', gap: 12, marginTop: 40, width: 320 }}>
+                <button className="btn btn-secondary" onClick={onClose} style={{ flex: 1 }}>Cerrar</button>
+                <button className="btn btn-primary" onClick={handleDownload} disabled={generating} style={{ flex: 2 }}>
+                    {generating ? 'Generando...' : '📥 Descargar'}
+                </button>
             </div>
         </div>
     );
