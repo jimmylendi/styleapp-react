@@ -1,0 +1,206 @@
+import { useState } from 'react';
+import { useStore } from '../../lib/store';
+import { OCCASIONS } from '../../lib/data';
+import type { FeedbackRating, Garment } from '../../types';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+export default function History() {
+    const [tab, setTab] = useState<'timeline' | 'stats'>('timeline');
+    const usedOutfits = useStore((s) => s.usedOutfits);
+    const garments = useStore((s) => s.garments);
+    const rateOutfit = useStore((s) => s.rateOutfit);
+
+    // To render garments from keys, we need the profile to run the generator briefly,
+    // or simply reconstruct the outfit. Actually, since key format is T-B-S or T-B-S-L,
+    // we can reconstruct it just by splitting the key and finding the garments!
+
+    const renderOutfitSummary = (ids: string[]) => {
+        const parts = ids.map(id => garments.find(g => g.id === id)).filter(Boolean) as Garment[];
+
+        return (
+            <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+                {parts.map(p => (
+                    <div key={p.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <div
+                            style={{
+                                width: 36, height: 36, borderRadius: '50%',
+                                background: p.colorHex, border: '2px solid rgba(255,255,255,0.1)'
+                            }}
+                            title={p.name}
+                        />
+                        <span style={{ fontSize: 10, color: 'var(--ink-2)', maxWidth: 60, textAlign: 'center', lineHeight: 1.2 }}>
+                            {p.name.split(' ')[0]} {/* Show just the first word e.g. "Camisa" */}
+                        </span>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const sortedOutfits = [...usedOutfits].sort((a, b) => b.date - a.date);
+
+    const RatingButton = ({ id, current, type, icon }: { id: string, current?: FeedbackRating, type: FeedbackRating, icon: string }) => {
+        const isActive = current === type;
+        return (
+            <button
+                onClick={() => rateOutfit(id, type)}
+                style={{
+                    background: isActive ? 'var(--accent)' : 'var(--surface-3)',
+                    opacity: isActive ? 1 : 0.6,
+                    padding: '6px 12px', borderRadius: 20, fontSize: 16,
+                    border: isActive ? '1px solid var(--accent)' : '1px solid transparent',
+                    display: 'flex', alignItems: 'center', gap: 4
+                }}
+            >
+                {icon}
+            </button>
+        );
+    };
+
+    return (
+        <div>
+            <div className="ed-label" style={{ marginBottom: 12 }}>Rastreo Diario</div>
+            <h1 className="ed-title">Historial</h1>
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 20, marginBottom: 24, background: 'var(--surface-2)', padding: 4, borderRadius: 'var(--r-full)' }}>
+                <button
+                    className="btn"
+                    style={{ flex: 1, padding: 8, background: tab === 'timeline' ? 'var(--surface-3)' : 'transparent', color: tab === 'timeline' ? 'var(--ink)' : 'var(--ink-2)' }}
+                    onClick={() => setTab('timeline')}
+                >
+                    Línea de tiempo
+                </button>
+                <button
+                    className="btn"
+                    style={{ flex: 1, padding: 8, background: tab === 'stats' ? 'var(--surface-3)' : 'transparent', color: tab === 'stats' ? 'var(--ink)' : 'var(--ink-2)' }}
+                    onClick={() => setTab('stats')}
+                >
+                    Métricas
+                </button>
+            </div>
+
+            {
+                tab === 'timeline' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {sortedOutfits.length === 0 ? (
+                            <p style={{ color: 'var(--ink-2)', textAlign: 'center', marginTop: 40 }}>
+                                Aún no has marcado ningún outfit como usado.
+                            </p>
+                        ) : (
+                            sortedOutfits.map(u => {
+                                const occ = OCCASIONS.find(o => o.id === u.occasion);
+                                const dateStr = new Date(u.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+
+                                return (
+                                    <div key={u.id} style={{ background: 'var(--surface-2)', padding: 16, borderRadius: 'var(--r-md)' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-2)', textTransform: 'capitalize' }}>
+                                                {dateStr}
+                                            </div>
+                                            <div style={{ fontSize: 12, background: 'var(--surface-3)', padding: '4px 10px', borderRadius: 12, fontWeight: 600 }}>
+                                                {occ?.name}
+                                            </div>
+                                        </div>
+
+                                        {u.imageUrl && (
+                                            <div style={{ marginTop: 16, marginBottom: 8, overflow: 'hidden', borderRadius: 'var(--r-md)' }}>
+                                                <img src={u.imageUrl} alt="Selfie del día" style={{ width: '100%', maxHeight: 360, objectFit: 'cover', display: 'block' }} />
+                                            </div>
+                                        )}
+
+                                        {renderOutfitSummary(u.garmentIds)}
+
+                                        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <span style={{ fontSize: 13, color: 'var(--ink-2)' }}>
+                                                Sensación con el outfit:
+                                            </span>
+                                            <div style={{ display: 'flex', gap: 8 }}>
+                                                <RatingButton id={u.id} current={u.rating} type="dislike" icon="Incómodo" />
+                                                <RatingButton id={u.id} current={u.rating} type="neutral" icon="Neutro" />
+                                                <RatingButton id={u.id} current={u.rating} type="like" icon="Excelente" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                )
+            }
+
+            {
+                tab === 'stats' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                        {/* Tarjeta de métricas generales */}
+                        <div style={{ background: 'var(--surface-2)', padding: 20, borderRadius: 'var(--r-md)', textAlign: 'center' }}>
+                            <div style={{ fontSize: 13, color: 'var(--ink-2)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 800 }}>Días registrados</div>
+                            <div style={{ fontSize: 48, fontWeight: 900, color: 'var(--accent)', lineHeight: 1.2 }}>{usedOutfits.length}</div>
+                        </div>
+
+                        {(() => {
+                            const totalVal = garments.reduce((acc, g) => acc + (g.price || 0), 0);
+                            return (
+                                <div style={{ background: 'var(--surface-2)', padding: '16px 20px', borderRadius: 'var(--r-md)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ fontSize: 13, color: 'var(--ink-2)', fontWeight: 600 }}>Valor total de tu clóset</div>
+                                    <div style={{ fontSize: 20, fontWeight: 800 }}>${totalVal}</div>
+                                </div>
+                            );
+                        })()}
+
+                        <div className="ed-label">Prendas con Mejor Retorno (CPW)</div>
+
+                        <div style={{ background: 'var(--surface-2)', padding: 16, borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            {(() => {
+                                if (usedOutfits.length === 0) return <div style={{ color: 'var(--ink-2)', fontSize: 13 }}>Sin datos suficientes.</div>;
+
+                                // Build usage map
+                                const counts: Record<string, number> = {};
+                                usedOutfits.forEach(u => {
+                                    u.garmentIds.forEach(id => {
+                                        counts[id] = (counts[id] || 0) + 1;
+                                    });
+                                });
+
+                                const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+                                const chartData = sortedCounts.map(([id, count]) => {
+                                    const g = garments.find(g => g.id === id);
+                                    return {
+                                        name: g?.name || 'Prenda',
+                                        cpw: g?.price ? parseFloat((g.price / count).toFixed(2)) : 0,
+                                        usos: count,
+                                        colorHex: g?.colorHex || '#586175'
+                                    };
+                                }).filter(d => d.cpw > 0);
+
+                                if (chartData.length === 0) return <div style={{ fontSize: 13, color: 'var(--ink-2)', textAlign: 'center', padding: '20px 0' }}>Agrega precios a tus prendas (Modo Compra) para calcular el CPW real.</div>;
+
+                                return (
+                                    <div style={{ height: 280, width: '100%', marginTop: 8 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 30, left: -20, bottom: 0 }}>
+                                                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--ink-3)' }} tickFormatter={(val) => `$${val}`} />
+                                                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} width={140} tick={{ fontSize: 11, fill: 'var(--ink)', fontWeight: 600 }} />
+                                                <Tooltip
+                                                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                                                    contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-md)', color: 'var(--ink)' }}
+                                                    itemStyle={{ color: 'var(--ink)' }}
+                                                    formatter={(value) => [`$${Array.isArray(value) ? value[0] : (value ?? 0)}`, 'Costo por Uso (CPW)']}
+                                                />
+                                                <Bar dataKey="cpw" radius={[0, 6, 6, 0]} barSize={24}>
+                                                    {chartData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.colorHex} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                )
+            }
+        </div>
+    );
+}

@@ -1,0 +1,7 @@
+{
+  "name": "StyleApp",
+  "description": "Tu asistente personal de clóset cápsula y estilismo inteligente con recomendaciones del Oráculo de IA.",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
